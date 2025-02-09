@@ -6,6 +6,11 @@ function App() {
   const [companies, setCompanies] = useState([]);
   const [selectedCompanyId, setSelectedCompanyId] = useState('');
   const [newCompanyName, setNewCompanyName] = useState('');
+  const [formData, setFormData] = useState({
+    status: '',
+    websiteLinks: '',
+    importantDate: ''
+  });
 
   const buttonText = selectedCompanyId ? 'Add note' : 'Add company';
 
@@ -33,10 +38,20 @@ function App() {
     fetchJobTrackerData()
   }, []);
 
+  const resetJobTrackerForm = () => {
+    setFormData({
+      status: '',
+      websiteLinks: '',
+      importantDate: ''
+    });
+    setNewCompanyName('');
+    setSelectedCompanyId('');
+  }
+
   const postJobInfo = async (e) => {
     e.preventDefault();
 
-    const companyData = selectedCompanyId 
+    const payload = selectedCompanyId 
       ? { id: selectedCompanyId }
       : { name: newCompanyName };
 
@@ -56,19 +71,21 @@ function App() {
         method: method,
         headers: headers,
         body: JSON.stringify({
-          companyData,
-          contact_date: document.getElementById('contactDate').value,
+          ...payload,
           notes_attributes: [
             {
-              status_date: document.getElementById('statusDate').value,
               status: document.getElementById('status').value,
-              website_links: document.getElementById('websiteLinks').value,
-              important_date: document.getElementById('importantDate').value
+              links: document.getElementById('websiteLinks').value,
+              callout: document.getElementById('importantDate').value
             }
           ]
         })
       }).then(response => {
         console.log(response);
+        if (response.ok) {
+          fetchJobTrackerData();
+          resetJobTrackerForm();
+        }
       });
     } catch(error) {
       console.error('Error: ', error);
@@ -88,19 +105,23 @@ function App() {
             <form onSubmit={postJobInfo} id="addCompanyForm">
               <h2>Add Company</h2>
               <div className="form-group">
-                <label>Select Existing Company:</label>
-                <select 
-                  id="companySelect"
-                  value={selectedCompanyId}
-                  onChange={(e) => setSelectedCompanyId(e.target.value)}
-                >
-                  <option value="">Choose a company...</option>
-                  {companies.map(company => (
-                    <option key={company.id} value={company.id}>
-                      {company.name}
-                    </option>
-                  ))}
-                </select>
+                {companies.length > 0 && (
+                  <>
+                  <label>Select Existing Company:</label>
+                  <select 
+                    id="companySelect"
+                    value={selectedCompanyId}
+                    onChange={(e) => setSelectedCompanyId(e.target.value)}
+                  >
+                    <option value="">Choose a company...</option>
+                    {companies.map(company => (
+                      <option key={company.id} value={company.id}>
+                        {company.name}
+                      </option>
+                    ))}
+                  </select>
+                  </>
+                )}
               </div>
               <div className="clearfix"></div>
               <div className="form-group">
@@ -108,19 +129,11 @@ function App() {
                 <input
                   type="text"
                   id="companyName"
+                  value={newCompanyName}
                   disabled={selectedCompanyId !== ''}
+                  onChange={(e) => setNewCompanyName(e.target.value)}
                   placeholder="Enter new company name"
                 />
-              </div>
-              <div className="clearfix"></div>
-              <div className="form-group">
-                <label htmlFor="contactDate">Date Contacted:</label>
-                <input type="date" id="contactDate" name="contactDate" required />
-              </div>
-              <div className="clearfix"></div>
-              <div className="form-group">
-                <label htmlFor="statusDate">Status Date:</label>
-                <input type="date" id="statusDate" name="statusDate" required />
               </div>
               <div className="clearfix"></div>
               <div className="form-group">
@@ -146,22 +159,20 @@ function App() {
           <table id="jobTable">
             <thead>
               <tr>
-                <th>Company Name</th>
-                <th>Date Contacted</th>
-                <th>Status Date</th>
-                <th>Status</th>
-                <th>Website / Links</th>
-                <th>Important Date</th>
+                <th colSpan="2">Company Name</th>
+                <th colSpan="2">Status</th>
+                <th colSpan="2">Website / Links</th>
+                <th colSpan="2">Important Date</th>
+                <th colSpan="2"></th>
               </tr>
             </thead>
             <tbody>
               <tr>
                 <td className="companyName">Company Name</td>
-                <td className="contactDate">Date Contacted</td>
-                <td className="statusDate">Status Date</td>
                 <td className="status">Status</td>
                 <td className="websiteLinks">Website / Links</td>
                 <td className="importantDate">Important Date</td>
+                <td></td>
               </tr>
             </tbody>
           </table>
@@ -169,6 +180,32 @@ function App() {
       </header>
     </div>
   );
+}
+
+window.handleDelete = async function(companyId) {
+  try {
+    const response = await fetch(`/companies/${companyId}`, {
+      method: 'DELETE',
+      headers: {
+        'Accept': 'application/json',
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        id: companyId,
+        notes_attributes: [
+          {
+            _destroy: true
+          }
+        ]
+      })
+    });
+
+    if (response.ok) {
+      fetchJobTrackerData();
+    }
+  } catch (error) {
+    console.error('Error: ', error);
+  }
 }
 
 export async function fetchJobTrackerData() {
@@ -208,12 +245,25 @@ export async function fetchJobTrackerData() {
       job.notes.forEach(jobWithNotes => {
         try {
           const row = tbody.insertRow(); // Changed from table.insertRow()
-          row.insertCell(0).textContent = job.name;
-          row.insertCell(1).textContent = job.created_at;
-          row.insertCell(2).textContent = jobWithNotes?.created_at ?? '';
-          row.insertCell(3).textContent = jobWithNotes?.status ?? '';
-          row.insertCell(4).textContent = jobWithNotes?.links ?? '';
-          row.insertCell(5).textContent = jobWithNotes?.callout ?? '';
+          const nameCell = row.insertCell(0);
+          nameCell.setAttribute('colspan', '2');
+          nameCell.textContent = job.name;
+
+          const statusCell = row.insertCell(1);
+          statusCell.setAttribute('colspan', '2');
+          statusCell.textContent = jobWithNotes?.status ?? '';
+
+          const linksCell = row.insertCell(2);
+          linksCell.setAttribute('colspan', '2');
+          linksCell.textContent = jobWithNotes?.links ?? '';
+
+          const calloutCell = row.insertCell(3);
+          calloutCell.setAttribute('colspan', '2');
+          calloutCell.textContent = jobWithNotes?.callout ?? '';
+
+          const deleteCell = row.insertCell(4);
+          deleteCell.setAttribute('colspan', '2');
+          deleteCell.innerHTML = `<button onClick="handleDelete(${job.id})">Delete</button>`;
         } catch (rowError) {
           console.error(`Error inserting row for ${job.name}:`, rowError);
         }
