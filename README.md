@@ -1,3 +1,10 @@
+# Job Tracker Front-end
+Full disclosure, this wasn't ever meant to be a production ready app. I'm using it as a self training tool. The purpose behind it is to replace the need for a spreadsheet to track all of the companies I apply to, and the status updates as they come in. 
+
+There is a Rails API that goes with this to store the data and to provide fetched data. I wanted to get sharper skills around coupling a seprate front end with an API-only backend.
+
+Interested in using it yourself? Fork the repo and make your own modifications. I won't merge in outside pull requests for now. I'm just using it for my own experience.
+
 # Getting Started with Create React App
 
 This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
