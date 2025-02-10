@@ -6,6 +6,9 @@ function App() {
   const [companies, setCompanies] = useState([]);
   const [selectedCompanyId, setSelectedCompanyId] = useState('');
   const [newCompanyName, setNewCompanyName] = useState('');
+  const [newCompanyStatus, setNewCompanyStatus] = useState('');
+  const [newCompanyWebsiteLinks, setNewCompanyWebsiteLinks] = useState('');
+  const [newCompanyImportantDate, setNewCompanyImportantDate] = useState('');
   const [formData, setFormData] = useState({
     status: '',
     websiteLinks: '',
@@ -25,7 +28,7 @@ function App() {
           }
         });
         const data = await response.json();
-        const sortedCompanies = data.sort((a, b) => a.id - b.id);
+        const sortedCompanies = data.sort((a, b) => a.name - b.name);
         setCompanies(sortedCompanies);
       } catch (error) {
         console.error('Error: ', error);
@@ -46,6 +49,8 @@ function App() {
     });
     setNewCompanyName('');
     setSelectedCompanyId('');
+    setNewCompanyStatus('');
+    setNewCompanyWebsiteLinks('');
   }
 
   const postJobInfo = async (e) => {
@@ -74,9 +79,9 @@ function App() {
           ...payload,
           notes_attributes: [
             {
-              status: document.getElementById('status').value,
-              links: document.getElementById('websiteLinks').value,
-              callout: document.getElementById('importantDate').value
+              status: newCompanyStatus,
+              links: newCompanyWebsiteLinks,
+              callout: newCompanyImportantDate
             }
           ]
         })
@@ -91,41 +96,92 @@ function App() {
       console.error('Error: ', error);
     }
   }
+
+  function logoComponent() {
+    return <img src={logo} className="App-logo" alt="logo" />
+  }
+
+  function introductionComponent() {
+    return (
+      <p>
+        This is my <code>Job-Tracker</code> font end.
+      </p>
+    )
+  }
+
+  function heading1Component(text) {
+    return (
+      <h1>{text}</h1>
+    )
+  }
+
+  function heading2Component(text) {
+    return (
+      <h2>{text}</h2>
+    )
+  }
+
+  function formInputLabel(text, htmlFor = String("")) {
+    return (<label htmlFor={htmlFor}>{text}:</label>)
+  }
+
+  function formSelectOption(key, value) {
+    return (
+      <option key={key} value={key}>
+        {value}
+      </option>
+    )
+  }
+
+  function textInputComponent(type, id, name, value, disabled = false, onChangeHandler, placeholder, required = false) {
+    return (
+      <input
+        type={type}
+        id={id}
+        name={name}
+        value={value}
+        {...(disabled ? {disabled: true} : {})}
+        onChange={onChangeHandler}
+        placeholder={placeholder}
+        {...(required ? {required: true} : {})} 
+      />
+    )
+  }
+
+  function buttonComponent(type, buttonActionText) {
+    return (<button type={type}>{buttonActionText}</button>)
+  }
   
   return (
     <div className="App">
       <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          This is my <code>Job-Tracker</code> font end.
-        </p>
+        {logoComponent()}
+        {introductionComponent()}
         <div>
-          <h1>Job Tracker</h1>
+          {heading1Component("Job Tracker")}
           <div className="addCompanyContainer">
             <form onSubmit={postJobInfo} id="addCompanyForm">
-              <h2>Add Company</h2>
+              {heading2Component("Add Company")}
               <div className="form-group">
                 {companies.length > 0 && (
                   <>
-                  <label>Select Existing Company:</label>
+                  {formInputLabel("Select Existing Company")}
                   <select 
                     id="companySelect"
                     value={selectedCompanyId}
                     onChange={(e) => setSelectedCompanyId(e.target.value)}
                   >
-                    <option value="">Choose a company...</option>
+                    {formSelectOption("", "Choose a company...")}
                     {companies.map(company => (
-                      <option key={company.id} value={company.id}>
-                        {company.name}
-                      </option>
+                      formSelectOption(company.id, company.name)
                     ))}
                   </select>
+                  <p> - OR - </p>
                   </>
                 )}
               </div>
-              <div className="clearfix"></div>
               <div className="form-group">
-                <label>Or Enter New Company:</label>
+                {formInputLabel("Enter New Company")}
                 <input
                   type="text"
                   id="companyName"
@@ -135,21 +191,20 @@ function App() {
                   placeholder="Enter new company name"
                 />
               </div>
-              <div className="clearfix"></div>
               <div className="form-group">
-                <label htmlFor="status">Status:</label>
-                <input type="text" id="status" name="status" required />
+                {formInputLabel("Status", "status")}
+                {textInputComponent("text", "status", "status", newCompanyStatus, false, (e) => setNewCompanyStatus(e.target.value), "", true)}
               </div>
               <div className="form-group">
-                <label htmlFor="websiteLinks">Website / Links:</label>
-                <input type="textarea" id="websiteLinks" name="websiteLinks" />
+                {formInputLabel("Website / Links", "websiteLinks")}
+                {textInputComponent("textarea", "websiteLinks", "websiteLinks", newCompanyWebsiteLinks, false, (e) => setNewCompanyWebsiteLinks(e.target.value), "", false)}
               </div>
               <div className="form-group">
-                <label htmlFor="importantDate">Important Date:</label>
-                <input type="date" id="importantDate" name="importantDate" />
+                {formInputLabel("Important Date", "importantDate")}
+                {textInputComponent("date", "importantDate", "importantDate", newCompanyImportantDate, false, (e) => setNewCompanyImportantDate(e.target.value), "", false)}
               </div>
               <div className="form-group">
-                <button type="submit">{buttonText}</button>
+                {buttonComponent("submit", buttonText)}
               </div>
             </form>
           </div>
