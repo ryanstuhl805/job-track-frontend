@@ -148,8 +148,50 @@ function App() {
     )
   }
 
+  function formElementComponent(type, id, name, value, disabled = false, onChangeHandler, placeholder, required = false) {
+    return (
+      <div className="form-group">
+        {formInputLabel(placeholder, name)}
+        {textInputComponent(type, id, name, value, disabled, onChangeHandler, placeholder, required)}
+      </div>
+    )
+  }
+
+  function companySelectComponent(companyData, id, placeholder, useSeparatorText = false) {
+    return (
+      <div className="form-group">
+        {companyData.length > 0 && (
+          <>
+          {formInputLabel(placeholder, id)}
+          <select 
+            id={id}
+            value={selectedCompanyId}
+            onChange={(e) => setSelectedCompanyId(e.target.value)}
+          >
+            {formSelectOption("", placeholder)}
+            {companyData.map(company => (
+              formSelectOption(company.id, company.name)
+            ))}
+          </select>
+          {useSeparatorText && <p> - OR - </p>}
+          </>
+        )}
+      </div>
+    )
+  }
+
   function buttonComponent(type, buttonActionText) {
-    return (<button type={type}>{buttonActionText}</button>)
+    return (
+      <div className="form-group">
+        <button type={type}>{buttonActionText}</button>
+      </div>
+    )
+  }
+
+  function tableHeaderComponent(headerLabel, colSpan = 2) {
+    return (
+      <th colSpan={colSpan}>{headerLabel}</th>
+    )
   }
   
   return (
@@ -162,50 +204,12 @@ function App() {
           <div className="addCompanyContainer">
             <form onSubmit={postJobInfo} id="addCompanyForm">
               {heading2Component("Add Company")}
-              <div className="form-group">
-                {companies.length > 0 && (
-                  <>
-                  {formInputLabel("Select Existing Company")}
-                  <select 
-                    id="companySelect"
-                    value={selectedCompanyId}
-                    onChange={(e) => setSelectedCompanyId(e.target.value)}
-                  >
-                    {formSelectOption("", "Choose a company...")}
-                    {companies.map(company => (
-                      formSelectOption(company.id, company.name)
-                    ))}
-                  </select>
-                  <p> - OR - </p>
-                  </>
-                )}
-              </div>
-              <div className="form-group">
-                {formInputLabel("Enter New Company")}
-                <input
-                  type="text"
-                  id="companyName"
-                  value={newCompanyName}
-                  disabled={selectedCompanyId !== ''}
-                  onChange={(e) => setNewCompanyName(e.target.value)}
-                  placeholder="Enter new company name"
-                />
-              </div>
-              <div className="form-group">
-                {formInputLabel("Status", "status")}
-                {textInputComponent("text", "status", "status", newCompanyStatus, false, (e) => setNewCompanyStatus(e.target.value), "", true)}
-              </div>
-              <div className="form-group">
-                {formInputLabel("Website / Links", "websiteLinks")}
-                {textInputComponent("textarea", "websiteLinks", "websiteLinks", newCompanyWebsiteLinks, false, (e) => setNewCompanyWebsiteLinks(e.target.value), "", false)}
-              </div>
-              <div className="form-group">
-                {formInputLabel("Important Date", "importantDate")}
-                {textInputComponent("date", "importantDate", "importantDate", newCompanyImportantDate, false, (e) => setNewCompanyImportantDate(e.target.value), "", false)}
-              </div>
-              <div className="form-group">
-                {buttonComponent("submit", buttonText)}
-              </div>
+              {companySelectComponent(companies, "companySelect", "Select Existing Company", true)}
+              {formElementComponent("text", "companyName", "companyName", newCompanyName, selectedCompanyId !== '', (e) => setNewCompanyName(e.target.value), "Enter new company name", true)}
+              {formElementComponent("text", "status", "status", newCompanyStatus, false, (e) => setNewCompanyStatus(e.target.value), "Status", true)}
+              {formElementComponent("textarea", "websiteLinks", "websiteLinks", newCompanyWebsiteLinks, false, (e) => setNewCompanyWebsiteLinks(e.target.value), "Website / Links", false)}
+              {formElementComponent("date", "importantDate", "importantDate", newCompanyImportantDate, false, (e) => setNewCompanyImportantDate(e.target.value), "Important Date", false)}
+              {buttonComponent("submit", buttonText)}
             </form>
           </div>
           {/* <div className="jobTrackerContainer">
@@ -214,21 +218,14 @@ function App() {
           <table id="jobTable">
             <thead>
               <tr>
-                <th colSpan="2">Company Name</th>
-                <th colSpan="2">Status</th>
-                <th colSpan="2">Website / Links</th>
-                <th colSpan="2">Important Date</th>
-                <th colSpan="2"></th>
+                {tableHeaderComponent("Company Name", 2)}
+                {tableHeaderComponent("Status", 2)}
+                {tableHeaderComponent("Website / Links", 2)}
+                {tableHeaderComponent("Important Date", 2)}
+                {tableHeaderComponent("", 2)}
               </tr>
             </thead>
             <tbody>
-              <tr>
-                <td className="companyName">Company Name</td>
-                <td className="status">Status</td>
-                <td className="websiteLinks">Website / Links</td>
-                <td className="importantDate">Important Date</td>
-                <td></td>
-              </tr>
             </tbody>
           </table>
         </div>
