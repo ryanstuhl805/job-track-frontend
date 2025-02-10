@@ -9,11 +9,6 @@ function App() {
   const [newCompanyStatus, setNewCompanyStatus] = useState('');
   const [newCompanyWebsiteLinks, setNewCompanyWebsiteLinks] = useState('');
   const [newCompanyImportantDate, setNewCompanyImportantDate] = useState('');
-  const [formData, setFormData] = useState({
-    status: '',
-    websiteLinks: '',
-    importantDate: ''
-  });
 
   const buttonText = selectedCompanyId ? 'Add note' : 'Add company';
 
@@ -42,15 +37,11 @@ function App() {
   }, []);
 
   const resetJobTrackerForm = () => {
-    setFormData({
-      status: '',
-      websiteLinks: '',
-      importantDate: ''
-    });
     setNewCompanyName('');
     setSelectedCompanyId('');
     setNewCompanyStatus('');
     setNewCompanyWebsiteLinks('');
+    setNewCompanyImportantDate('');
   }
 
   const postJobInfo = async (e) => {
@@ -71,7 +62,8 @@ function App() {
     const method = isExistingCompany ? 'PATCH' : 'POST';
 
     try {
-  
+      console.log('Website Links: ', newCompanyWebsiteLinks);
+      console.log('Important Date: ', newCompanyImportantDate);
       const response = await fetch(endpoint, {
         method: method,
         headers: headers,
@@ -212,9 +204,6 @@ function App() {
               {buttonComponent("submit", buttonText)}
             </form>
           </div>
-          {/* <div className="jobTrackerContainer">
-            <button type="button" onClick={fetchJobTrackerData}>Refresh</button>
-          </div> */}
           <table id="jobTable">
             <thead>
               <tr>
